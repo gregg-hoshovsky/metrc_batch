@@ -7,7 +7,20 @@ ini_set('html_errors', false)
 // HTTP authentication
 
 $_POST['email']='admin@a.com';
-include_once '/Users/greggh/git/metrc_include/license_batch.php';
+if (gethostname() == 'shared2.accountservergroup.com')
+{
+    $basePath = '/home1/eksanaly/git_source/metrc_include';
+    $webpath="";
+}else{
+    $basePath = '/Users/greggh/git/metrc_include';
+    $webpath="/metrc/v2";
+}
+
+
+$_POST['email']='admin@a.com';
+include_once $basePath .'/license_batch.php';
+
+
 
 $_SESSION['license']='010-X0001';
 $FACILITY_LICENSE=$_SESSION['license'];
