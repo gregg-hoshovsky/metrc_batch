@@ -7,7 +7,7 @@ include "database.php";
 
 $pdo = Database::xChangeConnect();
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$sql = "SELECT `id`,`NAME`, `POSTAL_CITY`, `COUNTY`, `STREET_ADDRESS`, `ZIP`, `state` FROM `Customer` where placeid = '' limit 0,50";
+$sql = "SELECT `id`,`NAME`, `POSTAL_CITY`, `COUNTY`, `STREET_ADDRESS`, `ZIP`, `state` FROM `Customer` where placeid = ''";
 $q = $pdo->prepare($sql);
 $q->execute(array( ));
 

@@ -1,12 +1,11 @@
 <?php 
-
-
 error_reporting(E_ALL);
 ini_set('display_errors', true);
-ini_set('html_errors', false)
+ini_set('html_errors', false);
 // HTTP authentication
 
 $_POST['email']='admin@a.com';
+
 if (gethostname() == 'shared2.accountservergroup.com')
 {
     $basePath = '/home1/eksanaly/git_source/metrc_include';
@@ -16,8 +15,6 @@ if (gethostname() == 'shared2.accountservergroup.com')
     $webpath="/metrc/v2";
 }
 
-
-$_POST['email']='admin@a.com';
 include_once $basePath .'/license_batch.php';
 
 
@@ -36,7 +33,12 @@ $ch=foobar($FACILITY_LICENSE,$API_TYPE,$API_CMD);
 list($httpCode,$results )=  process_foo_bar($ch);
 
 
-
+$stmt = $pdo->prepare('delete from audit_transfers_outgoing');
+$stmt->execute();
+$stmt = $pdo->prepare('delete from transfers');
+$stmt->execute();
+$stmt = $pdo->prepare('delete from transfer_packages');
+$stmt->execute();
 
 print"----outgoing transfers licensse ". $FACILITY_LICENSE ." httpCode ". $httpCode ."\n";
 if ($results != null)
@@ -62,7 +64,7 @@ if ($results != null)
           foreach ($rX as $key => $value) {
                print("\t\t". $key . ":\t". $value  . "\n");
            }
-          $sql = createDeliverySql('transfers' , $rX);
+          $sql = createDeliverySql('transfers' , $rX, $result->{'ManifestNumber'});
           print "$sql\n";
           $stmt = $pdo->prepare($sql);
           $stmt->execute();
@@ -76,7 +78,7 @@ if ($results != null)
                    print("\t\t\t". $key . ":\t". $value  . "\n");
                    
                }
-               $sql = createDeliverySql('transfer_packages' , $r ,$lastId);
+               $sql = createDeliverySql('transfer_packages' , $r ,$result->{'ManifestNumber'},$lastId );
                print "$sql\n";
                $stmt = $pdo->prepare($sql);
                $stmt->execute();
@@ -88,18 +90,22 @@ if ($results != null)
 Database::disconnect();
 }
 ////////////////
-function createDeliverySql($table , $result, $linkid=null)
+function createDeliverySql($table , $result, $ManifestNumber=null, $linkid=null)
 {
-    print ($linkid);
+  //  print ($linkid);
     $sql = "INSERT INTO $table (";
     $values = " VALUES (";
-    if( $linkid != null)
+    if( $ManifestNumber != null)
     {
-        $sql .= "transfers_id ,";
+    	$linkid = addslashes($linkid) ;
+        $sql .= "ManifestNumber ,";
+        $values .= " '$ManifestNumber' ,";
     }
     if( $linkid != null)
     {
-        $values .= " $linkid ,";
+    	$linkid = addslashes($linkid) ;
+        $sql .= "transfers_id ,";
+        $values .= " '$linkid' ,";
     }
 
     foreach ($result as $key => $value) {
@@ -140,6 +146,7 @@ function createDeliverySql($table , $result, $linkid=null)
                 if($value == '')
                     $value=0;
             }
+            $value = addslashes($value) ;
             $values .=" '$value' , ";
         }
         
