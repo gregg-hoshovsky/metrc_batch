@@ -4,7 +4,8 @@ ini_set('display_errors', true);
 ini_set('html_errors', false);
 // HTTP authentication
 
-$_POST['email']='admin@a.com';
+$_POST['email']='admin_clientX@a.com';
+#$_POST['email']='admin@a.com';
 
 if (gethostname() == 'shared2.accountservergroup.com')
 {
@@ -16,21 +17,23 @@ if (gethostname() == 'shared2.accountservergroup.com')
 }
 
 include_once $basePath .'/license_batch.php';
-$_POST['email']='admin@a.com';
 
 $pdo = Database::connect();
 
 
-$_SESSION['license']='010-X0001';
+#$_SESSION['license']='010-X0001';
+$_SESSION['license']='020-X0002';
 $FACILITY_LICENSE=$_SESSION['license'];
 
-$json_M = file_get_contents('/Users/greggh/transferLoad1.json');
+$json_M = file_get_contents('./transferLoad1.json');
+
+
 
 $json_M = str_replace("{Id}","4011",$json_M);
-$json_M = str_replace("{ShipperFacilityLicenseNumber}","010-X0001",$json_M);
-$json_M = str_replace("{RecipientFacilityLicenseNumber1}","040-X0002",$json_M);
-$json_M = str_replace("{RecipientFacilityLicenseNumber2}","040-X0003",$json_M);
-$json_M = str_replace("{RecipientFacilityLicenseNumber3}","040-X0003",$json_M);
+$json_M = str_replace("{ShipperFacilityLicenseNumber}","020-X0002",$json_M);
+$json_M = str_replace("{RecipientFacilityLicenseNumber1}","050 10044860EA3",$json_M);
+$json_M = str_replace("{RecipientFacilityLicenseNumber2}","050 1000071214D",$json_M);
+$json_M = str_replace("{RecipientFacilityLicenseNumber3}","050 1002568A92C",$json_M);
 
 //print $json_M ;
 $mani = json_decode($json_M);
@@ -45,7 +48,7 @@ foreach ($manifestList as $mainfestItem) {
     print "$sql\n";
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
-    print_r($pdo->errorInfo());print("error code ".$stmt->errorCode() ."\n");
+    print_r($stmt->errorInfo());print("error code ".$stmt->errorCode() ."\n");
     
     $recipientList = $mainfestItem->RecipientList;
     foreach ($recipientList as $recipentItem) {
@@ -57,7 +60,7 @@ foreach ($manifestList as $mainfestItem) {
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
-        print_r($pdo->errorInfo());print("error code ".$stmt->errorCode() ."\n");
+        print_r($stmt->errorInfo());print("error code ".$stmt->errorCode() ."\n");
         //print "\t-------SQL transfers: $sql\n";
 
         foreach ($packageList as $packageItem) {
@@ -67,7 +70,7 @@ foreach ($manifestList as $mainfestItem) {
             print "$sql\n";
             $stmt = $pdo->prepare($sql);
             $stmt->execute();
-            print_r($pdo->errorInfo());print("error code ".$stmt->errorCode() ."\n");
+            print_r($stmt->errorInfo());print("error code ".$stmt->errorCode() ."\n");
             
         }
     }

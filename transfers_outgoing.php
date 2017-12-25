@@ -4,7 +4,8 @@ ini_set('display_errors', true);
 ini_set('html_errors', false);
 // HTTP authentication
 
-$_POST['email']='admin@a.com';
+#$_POST['email']='admin@a.com';
+$_POST['email']='admin_clientX@a.com';
 
 if (gethostname() == 'shared2.accountservergroup.com')
 {
@@ -19,7 +20,8 @@ include_once $basePath .'/license_batch.php';
 
 
 
-$_SESSION['license']='010-X0001';
+#$_SESSION['license']='010-X0001';
+$_SESSION['license']='020-X0002';
 $FACILITY_LICENSE=$_SESSION['license'];
 
 
@@ -53,7 +55,7 @@ if ($results != null)
        print "$sql\n";
        $stmt = $pdo->prepare($sql);
        $stmt->execute();
-   
+       print_r($pdo->errorInfo());print("error code ".$stmt->errorCode() ."\n");
 
        $ch=foobar($FACILITY_LICENSE,'transfers',$result->{'Id'}.'/deliveries');
        list($httpCode,$r_deliveries)=  process_foo_bar($ch);
@@ -68,9 +70,12 @@ if ($results != null)
           print "$sql\n";
           $stmt = $pdo->prepare($sql);
           $stmt->execute();
+              print_r($pdo->errorInfo());print("error code ".$stmt->errorCode() ."\n");
+              
+              
            $ch=foobar($FACILITY_LICENSE,'transfers','delivery',$rX->{'Id'}.'/packages');
            list($httpCode,$r_packages )=  process_foo_bar($ch);
-           $lastId = $pdo->lastInsertId();
+         //  $lastId = $pdo->lastInsertId();
            print"----\t\toutgoing transfers deliveries packages ".$rX->{'Id'} ." httpCode ". $httpCode ." last id code $lastId\n";
            foreach ($r_packages as $r)
            {
@@ -78,10 +83,11 @@ if ($results != null)
                    print("\t\t\t". $key . ":\t". $value  . "\n");
                    
                }
-               $sql = createDeliverySql('transfer_packages' , $r ,$result->{'ManifestNumber'},$lastId );
+               $sql = createDeliverySql('transfer_packages' , $r ,$result->{'ManifestNumber'},$rX->RecipientFacilityLicenseNumber );
                print "$sql\n";
                $stmt = $pdo->prepare($sql);
                $stmt->execute();
+                   print_r($pdo->errorInfo());print("error code ".$stmt->errorCode() ."\n");
   
            }
            
@@ -90,27 +96,32 @@ if ($results != null)
 Database::disconnect();
 }
 ////////////////
-function createDeliverySql($table , $result, $ManifestNumber=null, $linkid=null)
+function createDeliverySql($table , $result, $ManifestNumber=null, $RecipientFacilityLicenseNumber=null)
 {
-  //  print ($linkid);
+    //  print ($linkid);
     $sql = "INSERT INTO $table (";
     $values = " VALUES (";
     if( $ManifestNumber != null)
     {
-    	$linkid = addslashes($linkid) ;
+        $ManifestNumber = addslashes($ManifestNumber) ;
         $sql .= "ManifestNumber ,";
         $values .= " '$ManifestNumber' ,";
     }
-    if( $linkid != null)
+    if( $RecipientFacilityLicenseNumber != null)
     {
-    	$linkid = addslashes($linkid) ;
-        $sql .= "transfers_id ,";
-        $values .= " '$linkid' ,";
+        $RecipientFacilityLicenseNumber = addslashes($RecipientFacilityLicenseNumber) ;
+        $sql .= "RecipientFacilityLicenseNumber ,";
+        $values .= " '$RecipientFacilityLicenseNumber' ,";
     }
-
+    
     foreach ($result as $key => $value) {
         //   print($key . ":\t". $value  . "\n");
-        $sql .="$key , ";
+        if ($key == 'RecipientList'
+            || $key == 'PackageList' )
+            break;
+            
+       $sql .="$key , ";
+
         if ($key == 'LastModified'
             ||$key == "CreatedDateTime"
             ||$key == "EstimatedDepartureDateTime"
@@ -118,24 +129,24 @@ function createDeliverySql($table , $result, $ManifestNumber=null, $linkid=null)
             ||$key == "ActualArrivalDateTime"
             ||$key == "ActualDepartureDateTime"
             ||$key == "ReceivedDateTime"
-  
+            
             )
             
         {
-        //    print ">$value<\n";
+            //    print ">$value<\n";
             if( $value == '0001-01-01T00:00:00.000' || $value == '')
             {
                 $values .=" null , ";
-
+                
             }else{
                 
                 $output = preg_split( "/(T|\+|\.)/",$value );
-            //    print_r($output);
+                //    print_r($output);
                 $utc_date = DateTime::createFromFormat('Y-m-d H:i:s', $output[0]. ' ' . $output[1],new DateTimeZone('UTC'));
                 $la_date = $utc_date;
                 $la_date->setTimeZone(new DateTimeZone('America/Los_Angeles'));
                 $value=   $la_date->format('Y-m-d h:i:s') ;
-               // echo 'la' .$value ."\n";
+                // echo 'la' .$value ."\n";
                 
                 $values .=" '$value' , ";
             }
@@ -146,19 +157,22 @@ function createDeliverySql($table , $result, $ManifestNumber=null, $linkid=null)
                 if($value == '')
                     $value=0;
             }
+           // print "$key VAL $value<";
             $value = addslashes($value) ;
             $values .=" '$value' , ";
         }
         
     }
-    $sql = rtrim($sql, ', ') . ")";
-    $values = rtrim($values, ', ') . ")";
+    $sql .= " createdOn )";
+//        $sql = rtrim($sql, ', ') . ")";
+ //   $values = rtrim($values, ', ') . ")";
+    $values .= " UTC_TIMESTAMP() )";
     
     
-    $sql = $sql . $values;
+    $sql = $sql . "\n" . $values;
     return $sql;
     
-   
+    
 }
 /////////////////
 
