@@ -1,8 +1,7 @@
 #!/bin/sh
-#mkdir ~/public_html/clientY
-cp -R ~/public_html/sandbox/* ~/public_html/clienty
-cp  ~/public_html/sandbox/.htaccess ~/public_html/clienty
-mysql -u eksanaly_auth  -p'Auth0r!ze' eksanaly_clientYy < dbTemplate.sql
+cp -R ~/public_html/sandbox/* ~/public_html/clientq
+cp  ~/public_html/sandbox/.htaccess ~/public_html/clientq
+mysql -u eksanaly_auth  -p'Auth0r!ze' eksanaly_clientq < dbTemplate.sql
 
 
  #db_auth
